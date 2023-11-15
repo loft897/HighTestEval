@@ -1,0 +1,9 @@
+<suite name="Suite de Tests Automatisés">
+    <test name="Test ISTQB">
+        <classes>
+            <class name="toolBox.ToolBoxTests"/>
+            <class name="testResults.TestResultsTests"/>
+            <class name="yopmail.YopMailTests"/>
+        </classes>
+    </test>
+</suite>
