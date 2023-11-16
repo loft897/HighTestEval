@@ -1,9 +1,10 @@
 package pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class YopMailPage {
     private WebDriver driver;
@@ -37,6 +38,17 @@ public class YopMailPage {
     // On clique sur le bouton "Check Mail"
     public void clickCheckMail() {
         driver.findElement(By.cssSelector("button.md")).click();
+    }
+
+    // On vérifie si l'adresse email du compte Yopmail est visible
+    public boolean isEmailVisible(String email) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        try {
+            WebElement emailDiv = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.bname")));
+            return emailDiv.getText().contains(email);
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     // On accepte les cookies si nécessaire

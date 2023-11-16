@@ -1,35 +1,52 @@
 package testResults;
 
 import base.BaseTests;
-import org.openqa.selenium.WebDriver;
 import org.testng.annotations.Test;
 import pages.ConfirmationPage;
 import pages.TestResultsPage;
+
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.testng.Assert.assertTrue;
 
 public class TestResultsTests extends BaseTests {
 
     @Test
-    public void sendEmail() {
-        WebDriver driver = BaseTests.getDriver();
-
-        // On s'assure que le test démarre sur la page des résultats
-        if (!driver.getCurrentUrl().contains("reponses-test-istqb")) {
-            // On navigue vers la page des résultats si nécessaire (Remplacez par l'URL appropriée)
-            driver.get("https://hightest.nc/ressources/reponses-test-istqb.php");
+    public void completeTestResultsProcess() {
+        // on lit les données d'e-mail à partir du fichier CSV
+        Map<String, String> emailData = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("ressources/emailAdress.csv"))) {
+            String line;
+            br.readLine(); // Ignorer l'en-tête
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                emailData.put(values[0].trim(), values[1].trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        // On crée une instance de la page des résultats
-        TestResultsPage testResultsPage = new TestResultsPage(driver);
+        // On récupère la valeur d'alias
+        String emailAlias = emailData.get("alias");
 
-        // On définit une adresse e-mail
-        testResultsPage.setEmail("alt.b7-1om5mdrp@yopmail.com");
+        // On initialise la page des résultats
+        TestResultsPage testResultsPage = new TestResultsPage(getDriver());
 
-        // On clique sur le bouton d'envoi de l'e-mail et passe à la page de confirmation
+        // on s'assurer que la page courante est la page des résultats
+        if (!getDriver().getCurrentUrl().contains("reponses-test-istqb")) {
+            getDriver().get("https://hightest.nc/ressources/reponses-test-istqb.php");
+        }
+
+        // On définit l'adresse e-mail et soumettre le formulaire
+        testResultsPage.setEmail(emailAlias);
         ConfirmationPage confirmationPage = testResultsPage.clickSendEmailButton();
 
-        // On vérifie que le texte de l'alerte contient "Parfait !"
+        // On Vérifie que le texte de l'alerte est correct
         assertTrue(confirmationPage.getAlertText().contains("Parfait !"), "Alert text is incorrect");
     }
+
 }

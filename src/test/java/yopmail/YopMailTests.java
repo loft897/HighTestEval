@@ -4,26 +4,50 @@ import base.BaseTests;
 import org.testng.annotations.Test;
 import pages.YopMailPage;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.testng.Assert.assertTrue;
+
 public class YopMailTests extends BaseTests {
 
     @Test
-    public void testYopMail() throws InterruptedException {
-        // On crée une instance de la page YopMail en utilisant le driver
+    public void testCompleteYopMailWorkflow() throws InterruptedException {
         YopMailPage yopMailPage = new YopMailPage(driver);
 
-        // On ouvre YopMail dans un nouvel onglet
-        yopMailPage.openInNewTab();
+        // on lit les données d'e-mail à partir du fichier CSV
+        Map<String, String> emailData = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("ressources/emailAdress.csv"))) {
+            String line;
+            br.readLine(); // on ignore l'en-tête
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                emailData.put(values[0].trim(), values[1].trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        // On accepte les cookies si nécessaire
+        // On récupère la valeur de l'email
+        String email = emailData.get("email");
+
+        // on ouvre YopMail dans un nouvel onglet et accepte les cookies
+        yopMailPage.openInNewTab();
         yopMailPage.acceptCookies();
 
-        // On saisit l'adresse e-mail dans le champ
-        yopMailPage.enterEmail("hightestevaluation");
-
-        // On clique sur le bouton "Check Mail"
+        // on saisit l'email, vérifie les mails, ouvre le premier mail
+        yopMailPage.enterEmail(email);
         yopMailPage.clickCheckMail();
 
-        // On attend pendant 10 secondes que la liste des e-mails se charge
+        // on verifie si l'adresse e-mail est visible
+        assertTrue(yopMailPage.isEmailVisible(email), "Email address not visible");
+
+        // Attendre que la liste des e-mails se charge
         Thread.sleep(10000);
+
+
     }
 }

@@ -1,29 +1,34 @@
 package toolBox;
 
 import base.BaseTests;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.testng.annotations.Test;
 import pages.TestResultsPage;
 import pages.ToolBoxPage;
 
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.testng.Assert.assertTrue;
 
 public class ToolBoxTests extends BaseTests {
 
     @Test
-    public void SuccessToolBox() {
-        // On clique sur le lien "Toolbox" depuis la page d'accueil
+    public void SuccessToolBox() throws Exception {
         ToolBoxPage toolBoxPage = homePage.clickToolbox();
-        toolBoxPage.clickFrenchButton(); // On choisit le quiz en francais
-        switchToQuizTab(); // On bascule vers l'onglet du quiz
-
-        // Tableau des réponses correctes pour chaque question
-        int[] reponses = {1, 2, 1, 2, 2, 3, 2, 4, 1, 3, 4, 2, 3, 2, 4, 3, 3, 1, 2, 2};
+        toolBoxPage.clickFrenchButton();
+        switchToQuizTab();
 
         // On sélectionne les réponses et soumettons le quiz
-        for (int i = 0; i < reponses.length; i++) {
-            toolBoxPage.selectAnswer(i, reponses[i] - 1); // Les réponses sont indexées à partir de 0
+        try (CSVReader csvReader = new CSVReaderBuilder(new FileReader("ressources/quiz_responses.csv")).withSkipLines(1).build()) {
+            List<String[]> allData = csvReader.readAll();
+            for (String[] row : allData) {
+                int questionNumber = Integer.parseInt(row[0]) - 1;
+                int response = Integer.parseInt(row[1]) - 1;
+                toolBoxPage.selectAnswer(questionNumber, response);
+            }
         }
 
         // On obtient la page de résultats du test
@@ -36,7 +41,7 @@ public class ToolBoxTests extends BaseTests {
     private void switchToQuizTab() {
         ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
         if (tabs.size() > 1) {
-            driver.switchTo().window(tabs.get(1)); // On bascule sur le deuxième onglet
+            driver.switchTo().window(tabs.get(1));
         }
     }
 }
